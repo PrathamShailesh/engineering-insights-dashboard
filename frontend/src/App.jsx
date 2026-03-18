@@ -4,6 +4,16 @@ import RepoInput from './components/RepoInput';
 import MetricsCards from './components/MetricsCards';
 import ContributorsList from './components/ContributorsList';
 import CommitsChart from './components/CommitsChart';
+import ProductivityMetrics from './components/ProductivityMetrics';
+import ContributorEfficiency from './components/ContributorEfficiency';
+import ActivityTrend from './components/ActivityTrend';
+import InsightsPanel from './components/InsightsPanel';
+import LoadingSkeleton, { 
+  MetricsCardSkeleton, 
+  ChartSkeleton, 
+  ListSkeleton, 
+  InsightSkeleton 
+} from './components/LoadingSkeleton';
 
 const App = () => {
   const [repoData, setRepoData] = useState(null);
@@ -126,6 +136,47 @@ const App = () => {
               </div>
             )}
           </div>
+        ) : isLoading ? (
+          <div className="space-y-8">
+            {/* Loading Repository Info */}
+            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+              <div className="flex items-center space-x-4">
+                <LoadingSkeleton width="w-8 h-8" rounded="rounded-full" />
+                <div>
+                  <LoadingSkeleton width="w-48 h-8" />
+                  <LoadingSkeleton width="w-32 h-4" className="mt-2" />
+                </div>
+              </div>
+            </div>
+
+            {/* Loading Metrics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <MetricsCardSkeleton key={index} />
+              ))}
+            </div>
+
+            {/* Loading Productivity Section */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+              <LoadingSkeleton width="w-64 h-8" className="mb-6" />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <ChartSkeleton title="Loading Productivity Metrics..." />
+                <ChartSkeleton title="Loading Activity Trend..." />
+              </div>
+            </div>
+
+            {/* Loading Contributor and AI Insights */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <ChartSkeleton title="Loading Contributor Efficiency..." />
+              <InsightSkeleton />
+            </div>
+
+            {/* Loading Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <ChartSkeleton title="Loading Commit Activity..." />
+              <ListSkeleton title="Loading Contributors..." itemCount={5} />
+            </div>
+          </div>
         ) : (
           <div className="space-y-8">
             {/* Repository Info */}
@@ -156,7 +207,28 @@ const App = () => {
             {/* Metrics Cards */}
             <MetricsCards metrics={repoData} />
 
-            {/* Charts and Lists Grid */}
+            {/* Developer Productivity Insights Section */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                <svg className="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Developer Productivity Insights
+              </h2>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <ProductivityMetrics metrics={repoData} />
+                <ActivityTrend commitFrequencyTrend={repoData.commitFrequencyTrend} />
+              </div>
+            </div>
+
+            {/* Contributor Efficiency and AI Insights */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <ContributorEfficiency commitsPerContributor={repoData.commitsPerContributor} />
+              <InsightsPanel insights={repoData.aiInsights} />
+            </div>
+
+            {/* Original Charts and Lists Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <CommitsChart commitsData={repoData.commitsLast7Days} />
               <ContributorsList contributors={repoData.topContributors} />
