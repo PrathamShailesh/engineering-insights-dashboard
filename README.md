@@ -322,6 +322,110 @@ VITE_API_URL=https://your-backend-domain.railway.app
 - [ ] Verify health endpoint: `https://your-backend-url/health`
 - [ ] Test API endpoint: `https://your-backend-url/api/repo/facebook/react`
 
+## Testing & Quality Assurance
+
+### Manual Test Cases
+
+Comprehensive manual test cases are documented in `/tests/testCases.md` covering:
+
+- **Input Validation**: Valid/invalid repository URLs, empty input handling
+- **API Failure Scenarios**: Rate limits, network errors, slow responses
+- **Component Functionality**: Metrics display, chart rendering, contributor lists
+- **Error Handling**: 404/500 errors, edge cases, boundary conditions
+- **Performance**: Large repositories, rapid requests, memory usage
+- **Responsive Design**: Mobile/tablet viewports, accessibility testing
+
+### Automated Testing
+
+#### Backend API Testing
+```bash
+# Run backend tests
+cd backend
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+**Test Coverage:**
+- API endpoint validation (`/api/repo/:owner/:repo`)
+- Error handling and status codes (200, 400, 404, 500)
+- Input validation and sanitization
+- Database operations and caching
+- Rate limit handling
+
+**Testing Stack:**
+- **Jest**: Test framework and assertions
+- **Supertest**: HTTP assertion library for API testing
+- **Coverage**: Code coverage reporting with HTML output
+
+#### Frontend Validation
+- **Input Validation**: Real-time URL format validation
+- **Error Boundaries**: React error catching and graceful degradation
+- **Loading States**: Proper loading indicators and skeleton screens
+- **User Feedback**: Clear error messages and recovery options
+
+### Error Handling Strategy
+
+#### Backend Error Responses
+```javascript
+// Proper HTTP status codes
+200: Success
+400: Bad Request (invalid input)
+404: Not Found (repository doesn't exist)
+429: Too Many Requests (rate limit exceeded)
+500: Internal Server Error
+503: Service Unavailable (database/network issues)
+```
+
+#### Frontend Error Handling
+- **Validation Errors**: Real-time input validation with user feedback
+- **API Errors**: Graceful handling of network failures and rate limits
+- **Component Errors**: Error boundaries prevent application crashes
+- **User Experience**: Clear error messages with actionable recovery options
+
+### Quality Assurance Practices
+
+#### Code Quality
+- **Modular Architecture**: Separation of concerns and reusable components
+- **Error Logging**: Comprehensive error tracking and debugging information
+- **Input Sanitization**: Protection against invalid and malicious inputs
+- **Type Safety**: JSDoc documentation and parameter validation
+
+#### Performance Considerations
+- **Caching Strategy**: Intelligent API response caching
+- **Rate Limit Management**: Proactive rate limit handling and user notifications
+- **Loading Optimization**: Skeleton screens and progressive loading
+- **Memory Management**: Proper cleanup and resource management
+
+### Running Tests
+
+#### Prerequisites
+```bash
+# Install backend dependencies
+cd backend
+npm install
+
+# Install frontend dependencies
+cd frontend
+npm install
+```
+
+#### Test Execution
+```bash
+# Backend API tests
+cd backend
+npm test
+
+# Manual testing checklist
+# See /tests/testCases.md for detailed test scenarios
+```
+
+#### Test Reports
+- **Coverage Reports**: Generated in `backend/coverage/` directory
+- **Test Results**: Detailed output in console and HTML format
+- **Manual Testing**: Documented results in test cases file
+
 ## Future Enhancements
 
 - [ ] GitHub authentication for private repositories
@@ -331,3 +435,6 @@ VITE_API_URL=https://your-backend-domain.railway.app
 - [ ] Dark mode support
 - [ ] More detailed commit analysis
 - [ ] Issue and PR trends over time
+- [ ] Automated end-to-end testing with Cypress
+- [ ] Performance monitoring and analytics
+- [ ] Accessibility compliance testing

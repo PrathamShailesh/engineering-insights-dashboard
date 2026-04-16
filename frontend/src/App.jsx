@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getRepoMetrics } from './api';
+import { getEnhancedRepoMetrics } from './api';
 import RepoInput from './components/RepoInput';
 import MetricsCards from './components/MetricsCards';
 import ContributorsList from './components/ContributorsList';
@@ -8,6 +8,9 @@ import ProductivityMetrics from './components/ProductivityMetrics';
 import ContributorEfficiency from './components/ContributorEfficiency';
 import ActivityTrend from './components/ActivityTrend';
 import InsightsPanel from './components/InsightsPanel';
+import CompareRepos from './components/CompareRepos';
+import AskAI from './components/AskAI';
+import RateLimitAlert from './components/RateLimitAlert';
 import LoadingSkeleton, { 
   MetricsCardSkeleton, 
   ChartSkeleton, 
@@ -19,17 +22,24 @@ const App = () => {
   const [repoData, setRepoData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [rateLimitError, setRateLimitError] = useState(null);
 
   const handleRepoSubmit = async (owner, repo) => {
     setIsLoading(true);
     setError('');
     setRepoData(null);
+    setRateLimitError(null);
 
     try {
-      const data = await getRepoMetrics(owner, repo);
+      const data = await getEnhancedRepoMetrics(owner, repo);
       setRepoData(data);
     } catch (err) {
-      setError(err.message);
+      // Check if it's a rate limit error
+      if (err.rateLimitReset) {
+        setRateLimitError(err);
+      } else {
+        setError(err.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -38,10 +48,23 @@ const App = () => {
   const handleReset = () => {
     setRepoData(null);
     setError('');
+    setRateLimitError(null);
+  };
+
+  const handleDismissRateLimit = () => {
+    setRateLimitError(null);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Rate Limit Alert */}
+      {rateLimitError && (
+        <RateLimitAlert 
+          error={rateLimitError} 
+          onDismiss={handleDismissRateLimit} 
+        />
+      )}
+      
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -227,6 +250,12 @@ const App = () => {
               <ContributorEfficiency commitsPerContributor={repoData.commitsPerContributor} />
               <InsightsPanel insights={repoData.aiInsights} />
             </div>
+
+            {/* AI Assistant Section */}
+            <AskAI repoData={repoData} />
+
+            {/* Repository Comparison Section */}
+            <CompareRepos />
 
             {/* Original Charts and Lists Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

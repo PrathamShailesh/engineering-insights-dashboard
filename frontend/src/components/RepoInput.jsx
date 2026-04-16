@@ -4,29 +4,89 @@ import { parseGitHubUrl } from '../api';
 const RepoInput = ({ onRepoSubmit, isLoading }) => {
   const [url, setUrl] = useState('');
   const [error, setError] = useState('');
+  const [isValidating, setIsValidating] = useState(false);
+
+  // Enhanced validation function
+  const validateInput = (inputUrl) => {
+    const trimmedUrl = inputUrl.trim();
+    
+    // Empty input validation
+    if (!trimmedUrl) {
+      return {
+        isValid: false,
+        error: 'Please enter a GitHub repository URL'
+      };
+    }
+
+    // Basic URL format validation
+    const urlPattern = /^https?:\/\/github\.com\/[\w\-_.]+\/[\w\-_.]+\/?$/;
+    if (!urlPattern.test(trimmedUrl)) {
+      return {
+        isValid: false,
+        error: 'Invalid GitHub URL format. Please use: https://github.com/owner/repo'
+      };
+    }
+
+    // Length validation
+    if (trimmedUrl.length > 200) {
+      return {
+        isValid: false,
+        error: 'URL too long. Please enter a valid GitHub repository URL.'
+      };
+    }
+
+    return { isValid: true, error: null };
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsValidating(true);
 
-    if (!url.trim()) {
-      setError('Please enter a GitHub repository URL');
+    // Enhanced validation
+    const validation = validateInput(url);
+    if (!validation.isValid) {
+      setError(validation.error);
+      setIsValidating(false);
       return;
     }
 
     try {
       // Parse GitHub URL to extract owner and repo
       const { owner, repo } = parseGitHubUrl(url);
+      
+      // Additional validation for owner and repo names
+      if (!owner || !repo) {
+        setError('Unable to extract repository information. Please check the URL format.');
+        setIsValidating(false);
+        return;
+      }
+
+      // Call parent submit function
       onRepoSubmit(owner, repo);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'An error occurred while processing the repository URL.');
+    } finally {
+      setIsValidating(false);
     }
   };
 
   const handleInputChange = (e) => {
-    setUrl(e.target.value);
+    const newUrl = e.target.value;
+    setUrl(newUrl);
+    
+    // Clear error when user starts typing
     if (error) {
       setError('');
+    }
+    
+    // Real-time validation feedback (optional)
+    if (newUrl.trim()) {
+      const validation = validateInput(newUrl);
+      if (!validation.isValid && newUrl.length > 10) {
+        // Only show validation error after user has typed enough
+        setError(validation.error);
+      }
     }
   };
 
@@ -70,10 +130,10 @@ const RepoInput = ({ onRepoSubmit, isLoading }) => {
 
         <button
           type="submit"
-          disabled={isLoading || !url.trim()}
+          disabled={isLoading || isValidating || !url.trim()}
           className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {isLoading ? (
+          {isLoading || isValidating ? (
             <span className="flex items-center justify-center">
               <svg
                 className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
@@ -94,7 +154,7 @@ const RepoInput = ({ onRepoSubmit, isLoading }) => {
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 />
               </svg>
-              Analyzing Repository...
+              {isValidating ? 'Validating...' : 'Analyzing Repository...'}
             </span>
           ) : (
             'Analyze Repository'

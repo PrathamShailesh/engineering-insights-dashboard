@@ -98,3 +98,24 @@ jspm_packages/
 # Temporary folders
 tmp/
 temp/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+database/
+
+# Test artifacts
+test-results/
+playwright-report/
+test-results.xml
+
+# Jest coverage
+/backend/coverage/
+.nyc_output/
+
+# Vite
+.vite/
+
+# Local development
+.local
