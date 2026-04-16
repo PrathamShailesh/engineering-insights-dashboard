@@ -5,7 +5,7 @@ const enhancedRoutes = require('./routes/enhancedRoutes');
 const database = require('./config/database');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.NODE_ENV === 'test' ? 3002 : (process.env.PORT || 3001);
 
 // CORS configuration
 const corsOrigins = process.env.NODE_ENV === 'production' 
@@ -77,4 +77,10 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
-startServer();
+// Only start server if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+  startServer();
+}
+
+// Export app for testing
+module.exports = app;
