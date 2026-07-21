@@ -57,6 +57,10 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+      {/* Debug info */}
+      <div className="fixed bottom-4 right-4 bg-white p-2 rounded shadow text-xs z-50">
+        API: {import.meta.env.VITE_API_URL || 'Not set'}
+      </div>
       {/* Rate Limit Alert */}
       {rateLimitError && (
         <RateLimitAlert 
