@@ -56,7 +56,7 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
       {/* Rate Limit Alert */}
       {rateLimitError && (
         <RateLimitAlert 
@@ -66,11 +66,11 @@ const App = () => {
       )}
       
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                 Engineering Insights Dashboard
               </h1>
               <p className="mt-2 text-gray-600">
@@ -80,7 +80,7 @@ const App = () => {
             {repoData && (
               <button
                 onClick={handleReset}
-                className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2.5 rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
               >
                 Analyze Another Repository
               </button>
@@ -95,7 +95,7 @@ const App = () => {
           <div className="space-y-8">
             {/* Input Section */}
             <div className="text-center space-y-4">
-              <div className="bg-white rounded-lg shadow-md p-8 border border-gray-200">
+              <div className="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg p-8 border border-gray-100">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
                   Get Started
                 </h2>
