@@ -8,7 +8,7 @@ const getBaseUrl = () => {
   
   // If in production (not localhost) and no env URL, use production URL
   if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return envUrl || 'https://engineering-insights-dashboard.onrender.com/';
+    return envUrl || 'https://engineering-insights-dashboard.onrender.com/api';
   }
   
   // Development: use proxy
