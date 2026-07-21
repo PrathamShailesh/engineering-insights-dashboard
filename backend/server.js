@@ -12,15 +12,32 @@ const PORT = process.env.NODE_ENV === 'test' ? 3002 : (process.env.PORT || 3001)
 // CORS configuration
 const defaultCorsOrigins = [
   'https://engineering-insights-dashboard-1.onrender.com',
-  'http://localhost:3000'
+  'http://localhost:3000',
+  'https://engineering-insights-dashboard.onrender.com' // Allow backend to call itself
 ];
 const corsOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
   : defaultCorsOrigins;
 
 app.use(cors({
-  origin: corsOrigins,
-  credentials: true
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow all origins in development, or specific origins in production
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+    
+    if (corsOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
