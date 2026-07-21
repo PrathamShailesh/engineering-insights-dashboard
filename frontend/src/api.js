@@ -2,16 +2,20 @@ import axios from 'axios';
 
 // Create axios instance with base URL
 const getBaseUrl = () => {
-  // Use environment variable for production, fallback to proxy for development
-  const envUrl = import.meta.env.VITE_API_URL;
-  console.log('Environment VITE_API_URL:', envUrl);
+  const hostname = window.location.hostname;
   
-  // If in production (not localhost) and no env URL, use production URL
-  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return envUrl || 'https://engineering-insights-dashboard.onrender.com/api';
+  console.log('=== API URL Debugging ===');
+  console.log('Hostname:', hostname);
+  
+  // Hardcode production URL for Render deployment
+  if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+    const productionUrl = 'https://engineering-insights-dashboard.onrender.com/api';
+    console.log('Using production URL:', productionUrl);
+    return productionUrl;
   }
   
   // Development: use proxy
+  console.log('Using development proxy: /api');
   return '/api';
 };
 
