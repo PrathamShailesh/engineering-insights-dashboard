@@ -4,17 +4,19 @@ const repoRoutes = require('./routes/repo');
 const enhancedRoutes = require('./routes/enhancedRoutes');
 const database = require('./config/database');
 
+require('dotenv').config();
+
 const app = express();
 const PORT = process.env.NODE_ENV === 'test' ? 3002 : (process.env.PORT || 3001);
 
 // CORS configuration
-const corsOrigins = process.env.NODE_ENV === 'production' 
-  ? [
-      'https://your-frontend-domain.vercel.app',
-      'https://your-frontend-domain.netlify.app',
-      'http://localhost:3000'
-    ]
-  : ['http://localhost:3000'];
+const defaultCorsOrigins = [
+  'https://engineering-insights-dashboard-1.onrender.com',
+  'http://localhost:3000'
+];
+const corsOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
+  : defaultCorsOrigins;
 
 app.use(cors({
   origin: corsOrigins,
