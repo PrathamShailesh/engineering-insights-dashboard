@@ -1,4 +1,5 @@
 const axios = require('axios');
+require('dotenv').config();
 
 /**
  * Calculate advanced productivity metrics from commit and contributor data
@@ -8,18 +9,13 @@ const axios = require('axios');
  * @returns {Object} Productivity metrics
  */
 const calculateProductivityMetrics = (commits, contributors, commitsByDay) => {
-  // Calculate commits per contributor
-  const commitsPerContributor = {};
-  commits.forEach(commit => {
-    const author = commit.author?.login || commit.commit.author.name;
-    if (author) {
-      commitsPerContributor[author] = (commitsPerContributor[author] || 0) + 1;
-    }
-  });
-
-  // Convert to array format for frontend
-  const commitsPerContributorArray = Object.entries(commitsPerContributor)
-    .map(([username, commits]) => ({ username, commits }))
+  // Use actual contributor data from GitHub API for total contributions
+  // This gives us the real contribution counts across all time, not just last 7 days
+  const commitsPerContributorArray = contributors
+    .map(contributor => ({
+      username: contributor.login,
+      commits: contributor.contributions
+    }))
     .sort((a, b) => b.commits - a.commits)
     .slice(0, 10); // Top 10 contributors
 
@@ -139,49 +135,76 @@ const getRepoMetrics = async (owner, repo) => {
     // GitHub API base URL
     const GITHUB_API_BASE = 'https://api.github.com';
     
+    // Create axios instance with auth headers if token is available
+    const axiosConfig = {};
+    if (process.env.GITHUB_TOKEN) {
+      axiosConfig.headers = {
+        'Authorization': `token ${process.env.GITHUB_TOKEN}`
+      };
+    }
+    
     // Fetch basic repository info
-    const repoResponse = await axios.get(`${GITHUB_API_BASE}/repos/${owner}/${repo}`);
+    const repoResponse = await axios.get(`${GITHUB_API_BASE}/repos/${owner}/${repo}`, axiosConfig);
     const repoData = repoResponse.data;
     
-    // Fetch contributors
-    const contributorsResponse = await axios.get(`${GITHUB_API_BASE}/repos/${owner}/${repo}/contributors`, {
-      params: { per_page: 5 } // Get top 5 contributors
-    });
-    const contributors = contributorsResponse.data;
+    // Fetch all contributors with pagination to get accurate count
+    let allContributors = [];
+    let page = 1;
+    let hasMore = true;
     
-    // Fetch commits for the last 7 days
+    console.log(`Starting to fetch all contributors for ${owner}/${repo}`);
+    
+    while (hasMore) {
+      const contributorsResponse = await axios.get(`${GITHUB_API_BASE}/repos/${owner}/${repo}/contributors`, {
+        ...axiosConfig,
+        params: { 
+          per_page: 100,
+          page: page
+        }
+      });
+      
+      console.log(`Page ${page}: Fetched ${contributorsResponse.data.length} contributors`);
+      
+      if (contributorsResponse.data.length === 0) {
+        hasMore = false;
+      } else {
+        allContributors = allContributors.concat(contributorsResponse.data);
+        console.log(`Total contributors so far: ${allContributors.length}`);
+        
+        // If we got less than 100, we're on the last page
+        if (contributorsResponse.data.length < 100) {
+          hasMore = false;
+        } else {
+          page++;
+        }
+      }
+    }
+    
+    console.log(`Final contributor count: ${allContributors.length}`);
+    
+    // Fetch commits for the last 7 days (increased limit for better data)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const commitsResponse = await axios.get(`${GITHUB_API_BASE}/repos/${owner}/${repo}/commits`, {
+      ...axiosConfig,
       params: { 
         since: sevenDaysAgo.toISOString(),
-        per_page: 100 
+        per_page: 250  // Increased from 100 to get more commit data
       }
     });
     const commits = commitsResponse.data;
-
-    // Fetch all contributors for detailed analysis
-    const allContributorsResponse = await axios.get(`${GITHUB_API_BASE}/repos/${owner}/${repo}/contributors`, {
-      params: { per_page: 100 }
-    });
-    const allContributors = allContributorsResponse.data;
     
-    // Fetch open issues
-    const issuesResponse = await axios.get(`${GITHUB_API_BASE}/repos/${owner}/${repo}/issues`, {
-      params: { 
-        state: 'open',
-        per_page: 1 
-      }
-    });
-    // Get total count from Link header or use the length of first page
-    const linkMatch = issuesResponse.headers.link ? 
-      issuesResponse.headers.link.match(/page=(\d+)>; rel="last"/) : null;
-    const openIssuesCount = linkMatch ? 
-      parseInt(linkMatch[1]) : 
-      issuesResponse.data.length;
+    // Use open_issues_count from repository data (more reliable)
+    const openIssuesCount = repoData.open_issues_count;
     
-    // Fetch pull requests (open)
+    // Use the actual count from paginated API calls (more accurate)
+    const contributorsCount = allContributors.length;
+    
+    // Use repository data for pull requests count (more reliable than API pagination)
+    // Note: GitHub doesn't provide open PR count directly, so we'll use a reasonable estimate
+    // or fetch it properly if needed. For now, we'll use the API method but improved.
     const prsResponse = await axios.get(`${GITHUB_API_BASE}/repos/${owner}/${repo}/pulls`, {
+      ...axiosConfig,
       params: { 
         state: 'open',
         per_page: 1 
@@ -221,8 +244,8 @@ const getRepoMetrics = async (owner, repo) => {
     // Generate AI insights
     const aiInsights = generateInsights(productivityMetrics, repoData);
     
-    // Process top contributors
-    const topContributors = contributors.map(contributor => ({
+    // Process top contributors (top 5 from all contributors)
+    const topContributors = allContributors.slice(0, 5).map(contributor => ({
       username: contributor.login,
       avatar: contributor.avatar_url,
       contributions: contributor.contributions
@@ -234,7 +257,7 @@ const getRepoMetrics = async (owner, repo) => {
       stars: repoData.stargazers_count,
       openIssues: openIssuesCount,
       pullRequests: pullRequestsCount,
-      contributorsCount: repoData.contributors_url ? contributors.length : 0,
+      contributorsCount: contributorsCount,
       topContributors,
       commitsLast7Days,
       ...productivityMetrics,
