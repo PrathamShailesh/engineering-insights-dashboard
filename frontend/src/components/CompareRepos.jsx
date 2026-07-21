@@ -41,6 +41,12 @@ const CompareRepos = () => {
       return;
     }
 
+    // Prevent comparing the same repository
+    if (repo1.owner === repo2.owner && repo1.repo === repo2.repo) {
+      setError('Cannot compare the same repository. Please enter two different repositories.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -163,7 +169,7 @@ const CompareRepos = () => {
       )}
 
       {/* Comparison Results */}
-      {comparisonData && (
+      {comparisonData && comparisonData.data && comparisonData.data.repo1 && comparisonData.data.repo2 && (
         <div className="space-y-6">
           {/* Summary */}
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
@@ -175,7 +181,7 @@ const CompareRepos = () => {
                 {comparisonData.winner === 'tie' ? 'Tie' : 
                  `${comparisonData.winner === 'repo1' ? comparisonData.data.repo1.repoName : comparisonData.data.repo2.repoName} wins`}
               </div>
-              <div className="text-gray-600">{comparisonData.summary}</div>
+              <div className="text-gray-600">{comparisonData.summary || 'Comparison completed'}</div>
             </div>
           </div>
 
@@ -267,56 +273,58 @@ const CompareRepos = () => {
           </div>
 
           {/* Detailed Comparison */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Advantages */}
-            <div className="bg-green-50 rounded-lg p-6 border border-green-200">
-              <h4 className="font-semibold text-green-900 mb-4">Advantages</h4>
-              <div className="space-y-3">
-                <div>
-                  <h5 className="font-medium text-green-800 mb-2">
-                    {comparisonData.data.repo1.repoName} Advantages:
-                  </h5>
-                  {comparisonData.comparison.repo1Advantages.length > 0 ? (
-                    <ul className="list-disc list-inside space-y-1 text-green-700">
-                      {comparisonData.comparison.repo1Advantages.map((advantage, index) => (
-                        <li key={index}>{advantage}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-green-600 text-sm">No significant advantages</p>
-                  )}
-                </div>
-                <div>
-                  <h5 className="font-medium text-green-800 mb-2">
-                    {comparisonData.data.repo2.repoName} Advantages:
-                  </h5>
-                  {comparisonData.comparison.repo2Advantages.length > 0 ? (
-                    <ul className="list-disc list-inside space-y-1 text-green-700">
-                      {comparisonData.comparison.repo2Advantages.map((advantage, index) => (
-                        <li key={index}>{advantage}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-green-600 text-sm">No significant advantages</p>
-                  )}
+          {comparisonData.comparison && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Advantages */}
+              <div className="bg-green-50 rounded-lg p-6 border border-green-200">
+                <h4 className="font-semibold text-green-900 mb-4">Advantages</h4>
+                <div className="space-y-3">
+                  <div>
+                    <h5 className="font-medium text-green-800 mb-2">
+                      {comparisonData.data.repo1.repoName} Advantages:
+                    </h5>
+                    {comparisonData.comparison.repo1Advantages && comparisonData.comparison.repo1Advantages.length > 0 ? (
+                      <ul className="list-disc list-inside space-y-1 text-green-700">
+                        {comparisonData.comparison.repo1Advantages.map((advantage, index) => (
+                          <li key={index}>{advantage}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-green-600 text-sm">No significant advantages</p>
+                    )}
+                  </div>
+                  <div>
+                    <h5 className="font-medium text-green-800 mb-2">
+                      {comparisonData.data.repo2.repoName} Advantages:
+                    </h5>
+                    {comparisonData.comparison.repo2Advantages && comparisonData.comparison.repo2Advantages.length > 0 ? (
+                      <ul className="list-disc list-inside space-y-1 text-green-700">
+                        {comparisonData.comparison.repo2Advantages.map((advantage, index) => (
+                          <li key={index}>{advantage}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-green-600 text-sm">No significant advantages</p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Similarities */}
-            <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
-              <h4 className="font-semibold text-blue-900 mb-4">Similarities</h4>
-              {comparisonData.comparison.similar.length > 0 ? (
-                <ul className="list-disc list-inside space-y-1 text-blue-700">
-                  {comparisonData.comparison.similar.map((similarity, index) => (
-                    <li key={index}>{similarity}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-blue-600">No significant similarities found</p>
-              )}
+              {/* Similarities */}
+              <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
+                <h4 className="font-semibold text-blue-900 mb-4">Similarities</h4>
+                {comparisonData.comparison.similar && comparisonData.comparison.similar.length > 0 ? (
+                  <ul className="list-disc list-inside space-y-1 text-blue-700">
+                    {comparisonData.comparison.similar.map((similarity, index) => (
+                      <li key={index}>{similarity}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-blue-600">No significant similarities found</p>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>
