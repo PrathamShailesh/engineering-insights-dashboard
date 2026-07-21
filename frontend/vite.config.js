@@ -12,5 +12,8 @@ export default defineConfig({
         changeOrigin: true
       }
     }
+  },
+  define: {
+    'process.env.API_URL': JSON.stringify(process.env.VITE_API_URL || 'https://engineering-insights-dashboard.onrender.com/')
   }
 })

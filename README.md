@@ -304,13 +304,13 @@ MIT License - feel free to use this project for personal or commercial purposes.
 ```bash
 NODE_ENV=production
 PORT=3001
-CORS_ORIGINS=https://your-frontend-domain.vercel.app,https://your-frontend-domain.netlify.app
+CORS_ORIGINS=https://engineering-insights-dashboard-1.onrender.com
 GITHUB_TOKEN=your_github_token_here  # Optional for higher rate limits
 ```
 
 #### Frontend (.env)
 ```bash
-VITE_API_URL=https://your-backend-domain.railway.app
+VITE_API_URL=https://engineering-insights-dashboard.onrender.com/
 ```
 
 ### Production Checklist

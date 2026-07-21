@@ -3,12 +3,24 @@ import axios from 'axios';
 // Create axios instance with base URL
 const getBaseUrl = () => {
   // Use environment variable for production, fallback to proxy for development
-  return import.meta.env.VITE_API_URL || '/api';
+  const envUrl = import.meta.env.VITE_API_URL;
+  console.log('Environment VITE_API_URL:', envUrl);
+  
+  // If in production (not localhost) and no env URL, use production URL
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return envUrl || 'https://engineering-insights-dashboard.onrender.com/';
+  }
+  
+  // Development: use proxy
+  return '/api';
 };
 
 const api = axios.create({
   baseURL: getBaseUrl(),
-  timeout: 10000, // 10 second timeout
+  timeout: 30000, // 30 second timeout for production
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
 /**
@@ -58,16 +70,22 @@ export const getRepoMetrics = async (owner, repo) => {
  */
 export const getEnhancedRepoMetrics = async (owner, repo) => {
   try {
+    console.log(`Fetching metrics for ${owner}/${repo} from ${getBaseUrl()}`);
     const response = await api.get(`/repo/${owner}/${repo}`);
     return response.data;
   } catch (error) {
+    console.error('API Error:', error);
     if (error.response) {
       const errorMessage = error.response.data.error || 'Failed to fetch enhanced repository data';
+      console.error('Response error:', error.response.status, errorMessage);
       throw new Error(errorMessage);
     } else if (error.request) {
-      throw new Error('Network error. Please check your internet connection.');
+      console.error('Request error - no response received:', error.message);
+      console.error('Base URL being used:', getBaseUrl());
+      throw new Error(`Network error: Unable to connect to backend at ${getBaseUrl()}. Please check if the backend is running.`);
     } else {
-      throw new Error('An unexpected error occurred.');
+      console.error('Unexpected error:', error.message);
+      throw new Error(`An unexpected error occurred: ${error.message}`);
     }
   }
 };
